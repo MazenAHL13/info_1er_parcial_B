@@ -1,5 +1,9 @@
 import arcade
-from tool import PencilTool
+from tool import PencilTool, MarkerTool, SprayTool
+import math, random  # para spray
+
+SPRAY_POINTS = 20 # cuántos puntos por tick
+SPRAY_RADIUS = 12 # radio del spray
 
 WIDTH = 800
 HEIGHT = 600
@@ -32,8 +36,10 @@ class Paint(arcade.View):
         if symbol == arcade.key.KEY_1:
             self.tool = PencilTool()
         elif symbol == arcade.key.KEY_2:
+            self.tool = MarkerTool()
             # other tool
-            pass
+        elif symbol == arcade.key.KEY_3:
+            self.tool = SprayTool()
         # Selección de color con teclas asd
         elif symbol == arcade.key.A:
             self.color = arcade.color.RED
@@ -51,7 +57,11 @@ class Paint(arcade.View):
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
         print(x, y)
         if button == arcade.MOUSE_BUTTON_LEFT:
-            self.traces.append({"tool": self.tool.name, "color": self.color, "trace":[(x, y)]})
+            if self.tool.name == "SPRAY":
+                pts = self._spray_points(x, y, SPRAY_POINTS, SPRAY_RADIUS)
+                self.traces.append({"tool": self.tool.name, "color": self.color, "trace": pts})
+            else: # Pencil or Marker
+                self.traces.append({"tool": self.tool.name, "color": self.color, "trace":[(x, y)]})
 
     def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int):
         if self.traces:
@@ -62,6 +72,16 @@ class Paint(arcade.View):
         for tool in self.used_tools.values():
             tool.draw_traces(self.traces)
 
+
+    def _spray_points(self, cx: int, cy: int, n: int, radius: int):
+        pts = []
+        for _ in range(n):
+            # Generamos un punto aleatorio dentro de un cuadrado
+            # centrado en (cx, cy) con lados de tamaño 2*radius
+            px = random.randint(cx - radius, cx + radius)
+            py = random.randint(cy - radius, cy + radius)
+            pts.append((px, py))
+        return pts
 
 if __name__ == "__main__":
     import sys
