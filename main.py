@@ -1,6 +1,8 @@
 import arcade
 from tool import PencilTool, MarkerTool, SprayTool, EraserTool
 import math, random  # para spray
+import utils
+import json, os
 
 SPRAY_POINTS = 100 # cuántos puntos por tick
 SPRAY_RADIUS = 20 # radio del spray
@@ -26,9 +28,9 @@ class Paint(arcade.View):
         self.tool = PencilTool()
         self.used_tools = {self.tool.name: self.tool}
         self.color = arcade.color.BLUE
-        if load_path is not None:
-            ### IMPLEMENTAR CARGA DE DIBUJO ###
-            self.traces = []
+        if load_path is not None and os.path.exists(load_path):
+            with open(load_path, "r") as f:
+                self.traces = json.load(f)
         else:
             self.traces = []
 
@@ -64,7 +66,10 @@ class Paint(arcade.View):
             self.tool.bg_color = self.background_color  # el eraser pinta del color del fondo
             self.color = self.background_color          # y forzamos el color actual a fondo
             self.used_tools[self.tool.name] = self.tool
-
+        # -------- Guardado y Carga --------
+        elif symbol == arcade.key.KEY_0:
+            utils.save_traces(self.traces)  # guarda en "traces.json"
+            return
         # -------- Colores (A/S/D) --------
         elif symbol == arcade.key.A:
             if self.tool.name != "ERASER":
