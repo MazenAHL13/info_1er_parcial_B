@@ -34,6 +34,23 @@ class Paint(arcade.View):
         else:
             self.traces = []
 
+        # Inicializamos used_tools con todas las herramientas que aparecen en los trazos
+        self.used_tools = {}
+        for trace in self.traces:
+            if trace["tool"] == "PENCIL":
+                self.used_tools["PENCIL"] = PencilTool()
+            elif trace["tool"] == "MARKER":
+                self.used_tools["MARKER"] = MarkerTool()
+            elif trace["tool"] == "SPRAY":
+                self.used_tools["SPRAY"] = SprayTool()
+            elif trace["tool"] == "ERASER":
+                eraser = EraserTool()
+                eraser.bg_color = self.background_color
+                self.used_tools["ERASER"] = eraser
+
+        # Aseguramos que la herramienta inicial (PENCIL) siempre exista en el diccionario
+        self.used_tools[self.tool.name] = self.tool
+
     def on_key_press(self, symbol: int, modifiers: int):
     # -------- Herramientas --------
         if symbol == arcade.key.KEY_1:
@@ -85,6 +102,11 @@ class Paint(arcade.View):
         elif symbol == arcade.key.D:
             if self.tool.name != "ERASER":
                 self.color = arcade.color.BLUE
+            else:
+                self.color = self.background_color
+        elif symbol == arcade.key.F:
+            if self.tool.name != "ERASER":
+                self.color = arcade.color.BLACK
             else:
                 self.color = self.background_color
         

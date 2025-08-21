@@ -1,4 +1,5 @@
 import json
+
 def save_traces(traces: list[dict]) -> None:
     """
     Guarda las trazas en un archivo JSON.
