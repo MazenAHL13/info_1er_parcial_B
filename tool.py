@@ -39,3 +39,17 @@ class SprayTool(Tool):
                     size=self.point_size
                 )
 
+class EraserTool(MarkerTool):
+    name = "ERASER"
+    line_width = 20
+    bg_color = arcade.color.WHITE  # Color de fondo para el borrador
+
+    def draw_traces(self, traces: list[dict]):
+        # Dibuja SIEMPRE con el color de fondo, ignorando trace["color"]
+        for trace in traces:
+            if trace["tool"] == self.name and len(trace["trace"]) >= 2:
+                arcade.draw_line_strip(
+                    trace["trace"],
+                    self.bg_color,           # <--- color del fondo
+                    line_width=self.line_width
+                )

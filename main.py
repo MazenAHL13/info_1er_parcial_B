@@ -1,9 +1,9 @@
 import arcade
-from tool import PencilTool, MarkerTool, SprayTool
+from tool import PencilTool, MarkerTool, SprayTool, EraserTool
 import math, random  # para spray
 
-SPRAY_POINTS = 20 # cuántos puntos por tick
-SPRAY_RADIUS = 12 # radio del spray
+SPRAY_POINTS = 100 # cuántos puntos por tick
+SPRAY_RADIUS = 20 # radio del spray
 
 WIDTH = 800
 HEIGHT = 600
@@ -21,6 +21,7 @@ COLORS = {
 class Paint(arcade.View):
     def __init__(self, load_path: str = None):
         super().__init__()
+        self.prev_color = None  # <-- para restaurar color al salir del borrador
         self.background_color = arcade.color.WHITE
         self.tool = PencilTool()
         self.used_tools = {self.tool.name: self.tool}
@@ -32,21 +33,55 @@ class Paint(arcade.View):
             self.traces = []
 
     def on_key_press(self, symbol: int, modifiers: int):
-        # Selección de herramientas con las teclas numéricas
+    # -------- Herramientas --------
         if symbol == arcade.key.KEY_1:
+            # si venimos del eraser, restaurar color anterior
+            if self.tool.name == "ERASER" and self.prev_color is not None:
+                self.color = self.prev_color
+                self.prev_color = None
             self.tool = PencilTool()
+            self.used_tools[self.tool.name] = self.tool
+
         elif symbol == arcade.key.KEY_2:
+            if self.tool.name == "ERASER" and self.prev_color is not None:
+                self.color = self.prev_color
+                self.prev_color = None
             self.tool = MarkerTool()
-            # other tool
+            self.used_tools[self.tool.name] = self.tool
+
         elif symbol == arcade.key.KEY_3:
+            if self.tool.name == "ERASER" and self.prev_color is not None:
+                self.color = self.prev_color
+                self.prev_color = None
             self.tool = SprayTool()
-        # Selección de color con teclas asd
+            self.used_tools[self.tool.name] = self.tool
+
+        elif symbol == arcade.key.KEY_4:
+            # al entrar al eraser, guardamos el color actual una sola vez
+            if self.prev_color is None:
+                self.prev_color = self.color # guardamos el color de antes en prev_color
+            self.tool = EraserTool()
+            self.tool.bg_color = self.background_color  # el eraser pinta del color del fondo
+            self.color = self.background_color          # y forzamos el color actual a fondo
+            self.used_tools[self.tool.name] = self.tool
+
+        # -------- Colores (A/S/D) --------
         elif symbol == arcade.key.A:
-            self.color = arcade.color.RED
+            if self.tool.name != "ERASER":
+                self.color = arcade.color.RED
+            else:
+                # si estás en eraser, mantén el color del fondo
+                self.color = self.background_color
         elif symbol == arcade.key.S:
-            self.color = arcade.color.GREEN
+            if self.tool.name != "ERASER":
+                self.color = arcade.color.GREEN
+            else:
+                self.color = self.background_color
         elif symbol == arcade.key.D:
-            self.color = arcade.color.BLUE
+            if self.tool.name != "ERASER":
+                self.color = arcade.color.BLUE
+            else:
+                self.color = self.background_color
         
         # Guardado del dibujo con la tecla O
         ### IMPLEMENTAR ###
@@ -69,9 +104,11 @@ class Paint(arcade.View):
 
     def on_draw(self):
         self.clear()
-        for tool in self.used_tools.values():
-            tool.draw_traces(self.traces)
-
+        # recorre todos los trazos en el orden que se hicieron
+        for trace in self.traces:
+            tool = self.used_tools.get(trace["tool"])
+            if tool:
+                tool.draw_traces([trace])
 
     def _spray_points(self, cx: int, cy: int, n: int, radius: int):
         pts = []
