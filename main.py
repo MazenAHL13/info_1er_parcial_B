@@ -131,12 +131,43 @@ class Paint(arcade.View):
 
     def on_draw(self):
         self.clear()
-        # recorre todos los trazos en el orden que se hicieron
+        # 1) Dibujar los trazos
         for trace in self.traces:
             tool = self.used_tools.get(trace["tool"])
             if tool:
                 tool.draw_traces([trace])
 
+        # 2) Título (usar argumentos posicionales)
+        arcade.draw_text(
+            "El Paint de Mazen",
+            WIDTH // 2, HEIGHT - 8,           # x, y
+            arcade.color.BLACK, 20,           # color, font_size
+            anchor_x="center", anchor_y="top"
+        )
+
+        # 3) Lista simple de atajos
+        start_x = WIDTH - 220 + 10
+        start_y = HEIGHT - 40
+        line_h = 22
+        lines = [
+            "1 = Pencil",
+            "2 = Marker",
+            "3 = Spray",
+            "4 = Eraser",
+            "A = Red",
+            "S = Green",
+            "D = Blue",
+            "F = Black",
+            "0 = Guardar",
+        ]
+        for i, label in enumerate(lines):
+            y = start_y - i * line_h
+            arcade.draw_text(
+                label,
+                start_x, y,                     # x, y
+                arcade.color.BLACK, 14,         # color, font_size
+                anchor_x="left", anchor_y="center"
+            )
     def _spray_points(self, cx: int, cy: int, n: int, radius: int):
         pts = []
         for _ in range(n):
